@@ -1,70 +1,98 @@
-# How to mark test as Passed or Failed in TestNG with Appium on [LambdaTest](https://www.lambdatest.com/?utm_source=github&utm_medium=repo&utm_campaign=appium-testNG-passfail)
+# How to install multiple apps in Real Devices on [LambdaTest](https://www.lambdatest.com/?utm_source=github&utm_medium=repo&utm_campaign=appium-java-testNG-multipleApps) using Appium in the Java TestNG Framework
 
-While performing app automation testing with appium on LambdaTest Grid, you may face a scenario where a test that you declared as fail in your local instance may turn out to be completed successfully at LambdaTest. Don't worry though! We understand how imperative it is to flag an app automation test as either "pass" or "fail" depending upon your testing requirement with respect to the validation of expected behaviour. You can refer to sample test repo [here](https://github.com/LambdaTest/LT-appium-java-testng).
+While performing app automation testing with appium on LambdaTest Grid, you might face a scenario where the APP1 that you are testing needs to interact with a few other applications APP2, APP3. In this scenario, LambdaTest offers an easy way out where you can just [upload your apps](https://www.lambdatest.com/support/docs/appium-java/#upload-your-application) & add them to the multiple apps array.
+It becomes extremely convenient now where you can just add those URLs & run your tests with ease. 
 
 # Steps:
 
-You can specify a test as passed or failed by Lambda hooks. The following is an example on how to set test result as passed or failed. If the code reaches exception, then it will be marked as failed, else as passed.
+You can add the app URLs fetched by [uploading your apps](https://www.lambdatest.com/support/docs/appium-java/#upload-your-application) in the ```otherApps``` capability.
+
+You can make this change in the ```AndroidApp.java``` and ```iOSApp.java```:
+
+Below is the ```AndroidApp.java``` example shown:
 
 ```java
-import io.appium.java_client.AppiumDriver;
-import org.testng.annotations.Test;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import io.appium.java_client.MobileElement;
-import java.net.URL;
 public class AndroidApp {
     String userName = System.getenv("LT_USERNAME") == null ?
-            "username" : System.getenv("LT_USERNAME"); //Enter your username here
+            "username" : System.getenv("LT_USERNAME"); //Add username here
     String accessKey = System.getenv("LT_ACCESS_KEY") == null ?
-            "accessKey" : System.getenv("LT_ACCESS_KEY"); //Enter your accessKey here
+            "accessKey" : System.getenv("LT_ACCESS_KEY"); //Add accessKey here
     public String gridURL = "@mobile-hub.lambdatest.com/wd/hub";
     AppiumDriver driver;
     @Test
     @org.testng.annotations.Parameters(value = {"device", "version", "platform"})
-    public void AndroidApp1() {
+    public void AndroidApp1(String device, String version, String platform) {
         try {
             DesiredCapabilities capabilities = new DesiredCapabilities();
-                capabilities.setCapability("build","Enter_your_build_name"); //Enter your build name here
-                capabilities.setCapability("name","Enter_your_test_name"); //Enter your test name here
-                capabilities.setCapability("deviceName", "Galaxy S21 5G");
-                capabilities.setCapability("platformVersion","12");
-                capabilities.setCapability("platformName", "Android");
-                capabilities.setCapability("isRealMobile", true);
-                capabilities.setCapability("app", "lt://"); //Enter your app url here
+            capabilities.setCapability("build","Java TestNG Android");
+            capabilities.setCapability("name",platform+" "+device+" "+version);
+            capabilities.setCapability("deviceName", device);
+            capabilities.setCapability("platformVersion",version);
+            capabilities.setCapability("platformName", platform);
+            capabilities.setCapability("isRealMobile", true);
+            capabilities.setCapability("app", "lt://"); //Enter your app url
+            capabilities.setCapability("deviceOrientation", "PORTRAIT");
+            capabilities.setCapability("console", true);
+            capabilities.setCapability("network", false);
+            capabilities.setCapability("visual", true);
+            capabilities.setCapability("devicelog", true);
+
+            // ADD THE APP URL OF OTHER APPS THAT YOU'D LIKE TO INSTALL ON THE SAME DEVICE
+            capabilities.setCapability("otherApps", "[\"APP_ID\", \"APP_ID\"]");   // ENTER THE OTHER APP URLs HERE IN AN ARRAY FORMAT
+
             String hub = "https://" + userName + ":" + accessKey + gridURL;
             driver = new AppiumDriver(new URL(hub), capabilities);
             MobileElement color = (MobileElement) driver.findElementById("com.lambdatest.proverbial:id/color");
+            //Changes color to pink
             color.click();
+            Thread.sleep(1000);
             MobileElement text = (MobileElement) driver.findElementById("com.lambdatest.proverbial:id/Text");
+            //Changes the text to "Proverbial"
             text.click();
+            //toast will be visible
             MobileElement toast = (MobileElement) driver.findElementById("com.lambdatest.proverbial:id/toast");
             toast.click();
+            //notification will be visible
             MobileElement notification = (MobileElement) driver.findElementById("com.lambdatest.proverbial:id/notification");
             notification.click();
             Thread.sleep(2000);
-
-            //MARKING TEST AS PASSED VIA LAMBDA HOOKS
-            driver.executeScript('lambda-status=passed')
+            //Opens the geolocation page
+            MobileElement geo = (MobileElement) driver.findElementById("com.lambdatest.proverbial:id/geoLocation");
+            geo.click();
+            Thread.sleep(5000);
+            //takes back to home page
+            MobileElement home = (MobileElement) driver.findElementByAccessibilityId("Home");
+            home.click();
             driver.quit();
-
+            
         } catch (Exception e) {
             e.printStackTrace();
-            
-            //MARKING TEST AS FAILED VIA LAMBDA HOOKS            
-            driver.executeScript('lambda-status=failed');
-            driver.quit();
+            try{
+                driver.quit();
+            }catch(Exception e1){
+                e.printStackTrace();
             }
         }
-     }
+    }
+}
 ```
-## Run your test
 
-```bash
+### **Step 3: Execute Your Test Case**
+Debug and run your code. Run iOSApp.java or AndroidApp.java in your editor.
+```
 mvn clean install -DsuiteXmlFile=src/test/java/Android.xml
 ```
+```
+mvn clean install -DsuiteXmlFile=src/test/java/IOS.xml
+```
+
+Info: Your test results would be displayed on the test console (or command-line interface if you are using terminal/cmd) and on the 🔗 LambdaTest App Automation Dashboard.
+
+
+
 Your test results would be displayed on the test console (or command-line interface if you are using terminal/cmd) and on the [LambdaTest App Automation Dashboard](https://appautomation.lambdatest.com/build).
 
-# Additional Links
+## Additional Links
 
 - [Advanced Configuration for Capabilities](https://www.lambdatest.com/support/docs/desired-capabilities-in-appium/)
 - [How to test locally hosted apps](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/)
@@ -111,4 +139,4 @@ To stay updated with the latest features and product add-ons, visit [Changelog](
 ## We are here to help you :headphones:
 
 * Got a query? we are available 24x7 to help. [Contact Us](support@lambdatest.com)
-* For more info, visit - [LambdaTest](https://www.lambdatest.com/?utm_source=github&utm_medium=repo&utm_campaign=LT-appium-python)
+* For more info, visit - [LambdaTest](https://www.lambdatest.com/?utm_source=github&utm_medium=repo&utm_campaign=appium-java-testNG-multipleApps)
